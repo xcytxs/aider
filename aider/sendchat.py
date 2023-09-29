@@ -4,6 +4,8 @@ import json
 import backoff
 import openai
 import requests
+
+# from diskcache import Cache
 from openai.error import (
     APIConnectionError,
     APIError,
@@ -11,6 +13,10 @@ from openai.error import (
     ServiceUnavailableError,
     Timeout,
 )
+
+CACHE_PATH = "~/.aider.send.cache.v1"
+CACHE = None
+# CACHE = Cache(CACHE_PATH)
 
 
 @backoff.on_exception(
@@ -28,9 +34,9 @@ from openai.error import (
         f"{details.get('exception','Exception')}\nRetry in {details['wait']:.1f} seconds."
     ),
 )
-def send_with_retries(model, messages, functions, stream):
+def send_with_retries(model_name, messages, functions, stream):
     kwargs = dict(
-        model=model,
+        model=model_name,
         messages=messages,
         temperature=0,
         stream=stream,
@@ -44,17 +50,29 @@ def send_with_retries(model, messages, functions, stream):
     if hasattr(openai, "api_engine"):
         kwargs["engine"] = openai.api_engine
 
+    if "openrouter.ai" in openai.api_base:
+        kwargs["headers"] = {"HTTP-Referer": "http://aider.chat", "X-Title": "Aider"}
+
+    key = json.dumps(kwargs, sort_keys=True).encode()
+
     # Generate SHA1 hash of kwargs and append it to chat_completion_call_hashes
-    hash_object = hashlib.sha1(json.dumps(kwargs, sort_keys=True).encode())
+    hash_object = hashlib.sha1(key)
+
+    if not stream and CACHE is not None and key in CACHE:
+        return hash_object, CACHE[key]
 
     res = openai.ChatCompletion.create(**kwargs)
+
+    if not stream and CACHE is not None:
+        CACHE[key] = res
+
     return hash_object, res
 
 
-def simple_send_with_retries(model, messages):
+def simple_send_with_retries(model_name, messages):
     try:
         _hash, response = send_with_retries(
-            model=model,
+            model_name=model_name,
             messages=messages,
             functions=None,
             stream=False,

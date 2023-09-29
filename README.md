@@ -1,12 +1,29 @@
-# aider is GPT powered coding in your terminal
+# Test new LLMs (Llama2, CodeLlama, etc.)
 
-`aider` is a command-line chat tool that allows you to write and edit
-code with OpenAI's GPT models.  You can ask GPT to help you start
-a new project, or modify code in your existing git repo.
-Aider makes it easy to
-[git commit, diff & undo changes](https://aider.chat/docs/faq.html#how-does-aider-use-git)
-proposed by GPT without copy/pasting.
-It also has features that [help GPT-4 understand and modify larger codebases](https://aider.chat/docs/ctags.html).
+Test other LLMs (codellama, llama2, anthropic, cohere, etc.) with Aider, we just open-sourced a 1-click proxy to translate openai calls to huggingface, anthropic, togetherai, etc. api calls.
+
+**code**
+```
+$ pip install litellm
+$ litellm --model huggingface/bigcode/starcoder
+#INFO:     Uvicorn running on http://0.0.0.0:8000
+```
+
+Docs: https://docs.litellm.ai/docs/proxy_server
+
+I'd love to know if this solves any problem for you
+
+# aider is AI pair programming in your terminal
+
+Aider is a command line tool that lets you pair program with GPT-3.5/GPT-4,
+to edit code stored in your local git repository.
+You can start a new project or work with an existing repo.
+And you can fluidly switch back and forth between the aider chat where you ask
+GPT to edit the code and your own editor to make changes yourself.
+Aider makes sure edits from you and GPT are
+[committed to git](https://aider.chat/docs/faq.html#how-does-aider-use-git)
+with sensible commit messages.
+Aider is unique in that it [works well with pre-existing, larger codebases](https://aider.chat/docs/ctags.html).
 
 <p align="center">
   <img src="assets/screencast.svg" alt="aider screencast">
@@ -26,7 +43,9 @@ It also has features that [help GPT-4 understand and modify larger codebases](ht
 - [Tips](#tips)
 - [GPT-4 vs GPT-3.5](https://aider.chat/docs/faq.html#gpt-4-vs-gpt-35)
 - [Installation](https://aider.chat/docs/install.html)
+- [Voice-to-code](https://aider.chat/docs/voice.html)
 - [FAQ](https://aider.chat/docs/faq.html)
+- [Discord](https://discord.gg/Tv2uQnR88V)
 
 ## Getting started
 
@@ -43,7 +62,7 @@ $ aider hello.js
 Using git repo: .git
 Added hello.js to the chat.
 
-hello.js> write a js app that prints hello world
+hello.js> write a js script that prints hello world
 ```
 
 ## Example chat transcripts
@@ -70,7 +89,7 @@ You can find more chat transcripts on the [examples page](https://aider.chat/exa
 * Aider will [automatically commit each changeset to your local git repo](https://aider.chat/docs/faq.html#how-does-aider-use-git) with a descriptive commit message. These frequent, automatic commits provide a safety net. It's easy to undo changes or use standard git workflows to manage longer sequences of changes.
 * You can use aider with multiple source files at once, so GPT can make coordinated code changes across all of them in a single changeset/commit.
 * Aider can [give *GPT-4* a map of your entire git repo](https://aider.chat/docs/ctags.html), which helps it understand and modify large codebases.
-* You can also edit files by hand using your editor while chatting with aider. Aider will notice these out-of-band edits and ask if you'd like to commit them. This lets you bounce back and forth between the aider chat and your editor, to collaboratively code with GPT.
+* You can also edit files by hand using your editor while chatting with aider. Aider will notice these out-of-band edits and keep GPT up to date with the latest versions of your files. This lets you bounce back and forth between the aider chat and your editor, to collaboratively code with GPT.
 
 
 ## Usage
@@ -114,6 +133,7 @@ Aider supports commands from within the chat, which all start with `/`. Here are
 * `/undo`: Undo the last git commit if it was done by aider.
 * `/diff`: Display the diff of the last aider commit.
 * `/run <command>`: Run a shell command and optionally add the output to the chat.
+* `/voice`: Speak to aider to [request code changes with your voice](https://aider.chat/docs/voice.html).
 * `/help`: Show help about all commands.
 
 See the [full command docs](https://aider.chat/docs/commands.html) for more information.
@@ -164,3 +184,5 @@ For more information, see the [FAQ](https://aider.chat/docs/faq.html).
 * *It was WAY faster than I would be getting off the ground and making the first few working versions.* -- [Daniel Feldman](https://twitter.com/d_feldman/status/1662295077387923456)
 * *This project is stellar.* -- [funkytaco](https://github.com/paul-gauthier/aider/issues/112#issuecomment-1637429008)
 * *Amazing project, definitely the best AI coding assistant I've used.* -- [joshuavial](https://github.com/paul-gauthier/aider/issues/84)
+* *I am an aider addict. I'm getting so much more work done, but in less time.* -- [dandandan](https://discord.com/channels/1131200896827654144/1131200896827654149/1135913253483069470)
+* *Best agent for actual dev work in existing codebases.* -- [Nick Dobos](https://twitter.com/NickADobos/status/1690408967963652097?s=20)

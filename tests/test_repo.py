@@ -13,6 +13,64 @@ from tests.utils import GitTemporaryDirectory
 
 
 class TestRepo(unittest.TestCase):
+    def test_diffs_empty_repo(self):
+        with GitTemporaryDirectory():
+            repo = git.Repo()
+
+            # Add a change to the index
+            fname = Path("foo.txt")
+            fname.write_text("index\n")
+            repo.git.add(str(fname))
+
+            # Make a change in the working dir
+            fname.write_text("workingdir\n")
+
+            git_repo = GitRepo(InputOutput(), None, ".")
+            diffs = git_repo.get_diffs()
+            self.assertIn("index", diffs)
+            self.assertIn("workingdir", diffs)
+
+    def test_diffs_nonempty_repo(self):
+        with GitTemporaryDirectory():
+            repo = git.Repo()
+            fname = Path("foo.txt")
+            fname.touch()
+            repo.git.add(str(fname))
+
+            fname2 = Path("bar.txt")
+            fname2.touch()
+            repo.git.add(str(fname2))
+
+            repo.git.commit("-m", "initial")
+
+            fname.write_text("index\n")
+            repo.git.add(str(fname))
+
+            fname2.write_text("workingdir\n")
+
+            git_repo = GitRepo(InputOutput(), None, ".")
+            diffs = git_repo.get_diffs()
+            self.assertIn("index", diffs)
+            self.assertIn("workingdir", diffs)
+
+    def test_diffs_between_commits(self):
+        with GitTemporaryDirectory():
+            repo = git.Repo()
+            fname = Path("foo.txt")
+
+            fname.write_text("one\n")
+            repo.git.add(str(fname))
+            repo.git.commit("-m", "initial")
+
+            fname.write_text("two\n")
+            repo.git.add(str(fname))
+            repo.git.commit("-m", "second")
+
+            git_repo = GitRepo(InputOutput(), None, ".")
+            diffs = git_repo.diff_commits(False, "HEAD~1", "HEAD")
+            dump(diffs)
+            self.assertIn("two", diffs)
+
     @patch("aider.repo.simple_send_with_retries")
     def test_get_commit_message(self, mock_send):
         mock_send.return_value = "a good commit message"
@@ -112,3 +170,27 @@ class TestRepo(unittest.TestCase):
             fnames = git_repo.get_tracked_files()
             self.assertIn(str(fname), fnames)
             self.assertIn(str(fname2), fnames)
+
+    def test_get_tracked_files_from_subdir(self):
+        with GitTemporaryDirectory():
+            # new repo
+            raw_repo = git.Repo()
+
+            # add it, but no commits at all in the raw_repo yet
+            fname = Path("subdir/new.txt")
+            fname.parent.mkdir()
+            fname.touch()
+            raw_repo.git.add(str(fname))
+
+            os.chdir(fname.parent)
+
+            git_repo = GitRepo(InputOutput(), None, None)
+
+            # better be there
+            fnames = git_repo.get_tracked_files()
+            self.assertIn(str(fname), fnames)
+
+            # commit it, better still be there
+            raw_repo.git.commit("-m", "new")
+            fnames = git_repo.get_tracked_files()
+            self.assertIn(str(fname), fnames)
